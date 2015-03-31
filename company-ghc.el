@@ -151,7 +151,11 @@ If `haskell-hoogle-command' is non-nil, the value is used as default."
       (`(langopt . "OPTIONS_GHC") (all-completions prefix ghc-option-flags))
       (`(impspec . ,mod)
        (all-completions prefix (company-ghc--get-module-keywords mod)))
-      (`(module) (all-completions prefix ghc-module-names))
+      (`(module) (all-completions
+                  "" ghc-module-names
+                  (lambda (mod)
+                    (company-ghc--module-prefix-match-p
+                     (split-string prefix "\\.") mod))))
       (`(qualified . ,alias)
        (let ((mods (company-ghc--list-modules-by-alias alias)))
          (company-ghc--gather-candidates prefix mods)))
@@ -336,7 +340,7 @@ If the line is less offset than OFFSET, it finishes the search."
        (t (throw 'result nil))))))
 
 ;;
-;; Unitilities
+;; Utilities
 ;;
 (defun company-ghc--pget (s prop)
   "Get property value of PROP from the keyword S."
@@ -407,6 +411,18 @@ Return nil if none found."
         (cons
          (buffer-substring-no-properties (point) end)
          prefix)))))
+
+(defun company-ghc--module-prefix-match-p (pcomps module)
+  "Return non-nil if each component of PCOMPS is prefix of each component of
+MODULE split by '.'."
+  (let ((mcomps (split-string module "\\.")))
+    (catch 'result
+      (dolist (p pcomps)
+        (when (or (null mcomps)
+                  (not (string-prefix-p p (car mcomps))))
+          (throw 'result nil))
+        (setq mcomps (cdr mcomps)))
+      (throw 'result t))))
 
 ;;;###autoload
 (defun company-ghc (command &optional arg &rest ignored)
