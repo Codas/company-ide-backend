@@ -1,6 +1,6 @@
-==============================
- Company GHC |travis| |melpa|
-==============================
+=====================================
+ Company ide-backend
+=====================================
 
 .. contents:: Table of Contents
 .. sectnum::
@@ -8,8 +8,9 @@
 Overview
 ========
 
-| `Company-mode`_ completion back-end for `haskell-mode`_ via `ghc-mod`_.
+| `Company-mode`_ completion back-end for `haskell-mode`_ via `ide-backend-mode`_.
 | It runs when the major mode is derived from `haskell-mode`_.
+| This mode is based on the excellent `company-ghc`_ by Iku Iwasa.
 
 Installation
 ============
@@ -18,43 +19,60 @@ Depends
 -------
 * cl-lib
 * `company-mode`_
-* `ghc-mod`_
+* `ide-backend-mode`_
 
-  In order to make company-ghc work, ``ghc-comp-init`` needs to be called once.
-  It is called by ``ghc-init``, so if you follow `ghc-mod manual`_, there is nothing else to do about it.
-  Otherwise (if you don't want to call ``ghc-init``), ensure ``ghc-comp-init`` is called before using company-ghc.
-
-Optional Dependency
--------------------
-* `hoogle`_ command and its database (``hoogle data``) for doc-buffer support and hoogle search completion.
+  In order for ``company-ide-backend`` to work, ``ide-backend-mode`` has to be available and running.
+  This is best done by calling ``ide-backend-mode-start``.
 
 Setup from MELPA_
------------------
-1. Install from `MELPA`_::
+----------------
+Note: This package is currently not available on MELPA, please use the git method for now.
 
-     M-x package-install RET company-ghc RET
+..
+   1. Install from `MELPA`_::
+
+        M-x package-install RET company-ide-backend RET
 
 
-2. Add ``company-ghc`` to ``company-backends`` after loading `company-mode`_ and `ghc-mod`_
+   2. Add ``company-ide-backend`` to ``company-backends`` after loading
+      `company-mode`_ and `ide-backend-mode`_.
 
-   .. code:: emacs-lisp
+      .. code:: emacs-lisp
 
-     (add-to-list 'company-backends 'company-ghc)
+        (add-to-list 'company-backends 'company-ide-backend)
+
+      Or when using `spacemacs`_, disable company-ghc and add company-ide-backend:
+
+      .. code:: emacs-lisp
+
+        (setq-default dotspacemacs-excluded-packages '(company-ghc))
+        (spacemacs|add-company-hook haskell-mode)
+        (push '(company-ide-backend) company-backends-haskell-mode)
 
 Setup from Git
 --------------
 1. Install from Git::
 
-     git clone https://github.com/iquiw/company-ghc.git
+     git clone https://github.com/Codas/company-ide-backend.git
 
-2. Add ``company-ghc`` to ``company-backends`` after loading `company-mode`_ and `ghc-mod`_
+2. Add ``company-ide-backend`` to ``company-backends`` after loading
+   `company-mode`_ and `ide-backend-mode`_.
 
    .. code:: emacs-lisp
 
-     (add-to-list 'load-path "/path/to/company-ghc")
-     (add-to-list 'company-backends 'company-ghc)
+     (add-to-list 'load-path "/path/to/company-ide-backend")
+     (add-to-list 'company-backends 'company-ide-backend)
 
+   Or when using `spacemacs`_:
 
+   .. code:: emacs-lisp
+      
+     (add-to-list 'load-path "/path/to/company-ide-backend")
+     (setq-default dotspacemacs-excluded-packages '(company-ghc))
+     (spacemacs|add-company-hook haskell-mode)
+     (push '(company-ide-backend) company-backends-haskell-mode)
+
+             
 Feature
 =======
 
@@ -62,46 +80,27 @@ Completion
 ----------
 The following completions are available.
 
-1. Pragma names. (``ghc-pragma-names``)
+1. Pragma names.
 
    .. image:: images/pragma.png
       :alt: Completion for pragma
 
-2. Language extensions. (``ghc-language-extensions``)
-
-   .. image:: images/language.png
-      :alt: Completion for language extensions
-
-3. GHC option flags. (``ghc-options-flags``)
-
-   .. image:: images/option.png
-      :alt: Completion for GHC options
-
-4. Import module names. (``ghc-modules-names``)
-
-   .. image:: images/module.png
-      :alt: Completion for import modules
-
-5. Variables and functions in import spec. (``ghc-module-keyword``)
-
-   .. image:: images/impspec.png
-      :alt: Completion for import specs
-
-6. Qualified imported keywords.
+2. Qualified imported keywords.
 
    .. image:: images/qualified.png
       :alt: Completion for qualified imported keywords
 
-7. Keywords from imported modules.
+3. Keywords from imported modules.
 
    .. image:: images/keyword.png
       :alt: Completion for keywords of imported modules
 
 Show type info in minibuffer
 ----------------------------
-* If ``company-ghc-show-info`` is ``t``, ``oneline`` or ``nomodule``,
-  then type info of completion candidate is displayed in minibuffer
-  by ``ghc-mod info``.
+* Type information for certain completion candidates are displayed in the minibuffer.
+  Currently, ide-backend only supplies type information for completion
+  candidates if they are actively used in the current module or defined in the
+  current cabal project.
 
   .. image:: images/showinfo.png
      :alt: Show info in minibuffer (``nomodule``)
@@ -109,102 +108,29 @@ Show type info in minibuffer
 Show module name as annotation
 ------------------------------
 * Module name is displayed as completion annotation
-  if ``company-ghc-show-module`` is non-nil (default) as in the above images.
-
-Display Hoogle document as doc-buffer
--------------------------------------
-* If `hoogle`_ is installed and its database is prepared,
-  then pressing ``<f1>`` displays hoogle searched documentation in the doc-buffer.
-
-  .. image:: images/doc-buffer.png
-     :alt: Display documentation in docbuffer
-
-Locate source
--------------
-* When a function in the local project is selected as completion candidate,
-  pressing ``C-w`` (``company-show-location``) shows its source.
-  It uses information from ``ghc-mod info``, and works only when ``company-ghc-show-info`` is non-nil.
-
-Special completion command
---------------------------
-1. In-module completion (``M-x company-ghc-complete-in-module``)
-
-   It takes a module name in minibuffer, and provides candidates from keywords defined in the specified module.
-   You can use this as an alternative to ``:browse`` command of GHCi.
-
-   .. image:: images/in-module.png
-      :alt: In-module completion
-
-2. Hoogle search completion (``M-x company-ghc-complete-by-hoogle``)
-
-   It takes a query text in minibuffer, and provide candidates from `hoogle`_ search results.
-   For example, candidates is like the following if the query is ``(a -> b) -> (f a -> f b)``.
-
-   .. image:: images/hoogle-search.png
-      :alt: Hoogle search completion
-
-   If you want to get more search results at a time, increase the value of ``company-ghc-hoogle-search-limit`` (default 20).
+  if ``company-ide-backend-show-module`` is non-nil (default) as in the above images.
 
 Note
 ====
-* Currently, company-ghc treats all symbols as completion prefix unless it starts from line beginning.
-  This means other back-ends after company-ghc have no chance to provide completion candidates in haskell-mode.
+* Currently, company-ide-backend treats all symbols as completion prefix unless
+  it starts from line beginning.  This means other back-ends after
+  company-ide-backend have no chance to provide completion candidates in
+  haskell-mode.
 
-  As of now, if you want to use other back-ends with company-ghc, use grouped back-end like below.
+  As of now, if you want to use other back-ends with company-ide-backend, use
+  grouped back-end like below.
 
   .. code:: emacs-lisp
 
-     (add-to-list 'company-backends '(company-ghc :with company-dabbrev-code))
+     (add-to-list 'company-backends '(company-ide-backend :with company-dabbrev-code))
 
-* company-ghc add automatic scan module function to local ``after-save-hook``.
-  It might cause serious problem if there is a bug in it.
-  If you have any trouble at save, turn off autoscan by ``M-x company-ghc-turn-off-autoscan``.
+* ``company-ide-backend`` does not automatically reload the current file or
+  interacts in any other way with `ide-backend-mode`_ except to gather completion candidates.
+  In order to reload the current file, call ``ide-backend-mode-load``.
 
-  If customized variable ``company-ghc-autoscan`` is nil,
-  autoscan won't be added to local ``after-save-hook``.
-
-  If scan module is not performed in the buffer, completion by company-ghc does not work properly.
-  scan module can be invoked by ``M-x company-ghc-scan-modules``.
-
-
-Diagnostic
-==========
-There are some cases that completion by company-ghc does not work.
-If there is something wrong, run ``M-x company-ghc-diagnose``,
-which shows diagnostic info like the following::
-
-   * company-ghc backend found: company-ghc
-   * automatic scan module is enabled
-   * ghc-boot process has been done
-   
-   Module                                  Alias               Candidates
-   -------------------------------------------------------------------------------
-   Data.Maybe                              -                        12
-   Data.Map                                M                        111
-   Data.Attoparsec.ByteString.Char8        -                        76
-   Control.Applicative                     -                        22
-   Prelude                                 -                        212
-
-The first item shows if ``company-ghc`` is added to ``company-backends`` or not.
-
-The second item shows if company-ghc auto scan is enabled or not.
-
-The third item shows if ``ghc-boot`` has been processed properly.
-
-The table shows rows of imported module in the current buffer,
-its qualified import alias and number of candidates in the module.
-
-If ``company-ghc-autoscan`` is non-nil but company-ghc auto scan is disabled,
-it is possibly initialization step of ``company-ghc`` is not performed by some reason.
-Check company-ghc configuration. For workaround, run ``M-x company-ghc-turn-on-autoscan`` manually.
-
-If ``ghc-boot`` process has not been done or failed to run,
-check ghc-mod configuration (Ref. `ghc-mod manual`_) or whether ``ghc-mod boot`` command from shell or command prompt succeeds in the project directory.
-
-If some module is not in the table, it is possibly bug of company-ghc.
-
-If number of candidates is 0 or nil, it might be problem related to ``ghc-mod``.
-Try again with setting ``ghc-debug`` to ``t`` and see if there is any error in ``*GHC Debug*`` buffer.
+* This mode is based on the excellent `company-ghc`_ by Iku Iwasa. It is
+  however not a fully functional replacement, as many more advanced features
+  like import module completions, etc. are currently not available.
 
 
 License
@@ -212,13 +138,8 @@ License
 Licensed under the GPL 3+ license.
 
 .. _company-mode: http://company-mode.github.io/
+.. _company-ghc: https://github.com/iquiw/company-ghc
+.. _ide-backend-mode: https://github.com/chrisdone/ide-backend-mode
 .. _haskell-mode: https://github.com/haskell/haskell-mode
-.. _ghc-mod: http://www.mew.org/~kazu/proj/ghc-mod/en/
-.. _ghc-mod manual: http://www.mew.org/~kazu/proj/ghc-mod/en/preparation.html
-.. _haskell-docs: https://github.com/chrisdone/haskell-docs
-.. _hoogle: https://hackage.haskell.org/package/hoogle
+.. _spacemacs: https://github.com/syl20bnr/spacemacs
 .. _MELPA: http://melpa.milkbox.net/
-.. |travis| image:: https://api.travis-ci.org/iquiw/company-ghc.svg?branch=master
-            :target: https://travis-ci.org/iquiw/company-ghc
-.. |melpa| image:: http://melpa.org/packages/company-ghc-badge.svg
-           :target: http://melpa.org/#/company-ghc
