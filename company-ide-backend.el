@@ -152,7 +152,9 @@
 
 (defun company-ide-backend-meta (candidate)
   "Show type info for the given CANDIDATE."
-  (company-ide-backend--pget candidate :type))
+  (let* ((metadata (company-ide-backend--pget candidate :type))
+         (type (if (string= "" metadata) "" (concat candidate " :: " metadata))))
+    (haskell-fontify-as-mode type 'haskell-mode)))
 
 (defun company-ide-backend-annotation (candidate)
   "Show module name as annotation where the given CANDIDATE is defined."
