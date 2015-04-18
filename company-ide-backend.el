@@ -5,7 +5,7 @@
 ;; Author:    Arne Link <link.arne@gmail.com>
 ;; URL:       https://github.com/Codas/company-ide-backend
 ;; Version:   0.0.1
-;; Package-Requires: ((cl-lib "0.5") (company "0.8.0") (emacs "24"))
+;; Package-Requires: ((cl-lib "0.5") (company "0.8.0") (haskell-mode "13.8") (emacs "24"))
 ;; Keywords:  haskell, completion
 ;; Stability: experimental
 
@@ -40,6 +40,7 @@
 (require 'cl-lib)
 (require 'company)
 (require 'ide-backend-mode)
+(require 'haskell-mode)
 
 (defgroup company-ide-backend nil
   "company-mode back-end for haskell-mode."
