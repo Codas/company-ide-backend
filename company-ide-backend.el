@@ -164,16 +164,18 @@
 
 (defun company-ide-backend--gather-candidates (prefix)
   "Gather candidates for PREFIX from keywords and return them sorted."
-  (let* ((complassoc (ide-backend-mode-autocompletion prefix))
-         (completions (mapcar (lambda (c)
-                                (let ((name (cdr (assoc 'name c)))
-                                      (module (or (cdr (assoc 'definedIn c)) ""))
-                                      (type (or (cdr (assoc 'type c)) "")))
-                                  (put-text-property 0 1 :module module name)
-                                  (put-text-property 0 1 :type type name)
-                                  name)) complassoc)))
-    (sort completions (lambda (c1 c2)
-                        (string< c1 c2)))))
+  (when (and (ide-backend-mode-process) (process-live-p (ide-backend-mode-process)))
+    (let* ((complassoc (ide-backend-mode-autocompletion prefix))
+           (completions (mapcar (lambda (c)
+                                  (let ((name (cdr (assoc 'name c)))
+                                        (module (or (cdr (assoc 'definedIn c)) ""))
+                                        (type (or (cdr (assoc 'type c)) "")))
+                                    (put-text-property 0 1 :module module name)
+                                    (put-text-property 0 1 :type type name)
+                                    name)) complassoc)))
+      (sort completions (lambda (c1 c2)
+                          (string< c1 c2)))))
+  )
 
 ;;
 ;; Unitilities
