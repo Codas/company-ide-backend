@@ -165,7 +165,7 @@
 (defun company-ide-backend--gather-candidates (prefix)
   "Gather candidates for PREFIX from keywords and return them sorted."
   (when (and (ide-backend-mode-process) (process-live-p (ide-backend-mode-process)))
-    (let* ((complassoc (ide-backend-mode-autocompletion prefix))
+    (let* ((complassoc (company-ide-backend-completion-candidates prefix))
            (completions (mapcar (lambda (c)
                                   (let ((name (cdr (assoc 'name c)))
                                         (module (or (cdr (assoc 'definedIn c)) ""))
@@ -174,8 +174,33 @@
                                     (put-text-property 0 1 :type type name)
                                     name)) complassoc)))
       (sort completions (lambda (c1 c2)
-                          (string< c1 c2)))))
-  )
+                          (string< c1 c2))))))
+;;
+;; ide-backend-mode autocompletion support
+;; Only use this as long as ide-backend-mode does not provide a means
+;; to get completion candidates
+;;
+(defun company-ide-backend-completion-candidates (prefix)
+  "Display type info of thing at point."
+  (let* ((filename (buffer-file-name))
+         (module-name (haskell-guess-module-name))
+         (points (ide-backend-mode-points)))
+    (let* ((info (company-ide-backend-get-completion-candidates
+                  module-name
+                  (with-current-buffer (ide-backend-mode-buffer)
+                    (file-relative-name filename default-directory))
+                  prefix))
+           (suggestions (mapcar #'identity (cdr (assoc 'completions info)))))
+      suggestions)))
+
+(defun company-ide-backend-get-completion-candidates (module file prefix)
+  "Get autocomplete info of a given prefix."
+  (with-current-buffer (ide-backend-mode-buffer)
+    (ide-backend-mode-call
+     `((request . "getAutocompletion")
+       (module . ,module)
+       (autocomplete . ((filePath . ,file)
+                (prefix . ,prefix)))))))
 
 ;;
 ;; Unitilities
