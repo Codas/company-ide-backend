@@ -83,16 +83,22 @@ The following completions are available.
 1. Pragma names.
 
    .. image:: images/pragma.png
+      :width: 415
+      :height: 225
       :alt: Completion for pragma
 
 2. Qualified imported keywords.
 
    .. image:: images/qualified.png
+      :width: 415
+      :height: 225
       :alt: Completion for qualified imported keywords
 
 3. Keywords from imported modules.
 
    .. image:: images/keyword.png
+      :width: 415
+      :height: 225
       :alt: Completion for keywords of imported modules
 
 Show type info in minibuffer
@@ -103,6 +109,8 @@ Show type info in minibuffer
   current cabal project.
 
   .. image:: images/showinfo.png
+     :width: 415
+     :height: 225
      :alt: Show info in minibuffer (``nomodule``)
 
 Show module name as annotation
